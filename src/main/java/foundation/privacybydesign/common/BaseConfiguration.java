@@ -9,7 +9,26 @@ import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 
 /**
- * Created by ayke on 19-6-17.
+ * Base class for *Configuration classes in issuer servlets.
+ *
+ * See BIGConfiguration in irma_big_server for an example.
+ * Mostly what you have to do is to inherit this class and create a
+ * getInstance() method:
+ *
+ *     if (instance == null) {
+ *         try {
+ *             String json = new String(getResource(CONFIG_FILENAME));
+ *             instance = GsonUtil.getGson().fromJson(json, MyConfiguration.class);
+ *         } catch (IOException e) {
+ *             System.out.println("could not load configuration");
+ *             instance = new MyConfiguration();
+ *         }
+ *     }
+ *     return instance;
+ *
+ * Other than that, just add private members with getters which you can use
+ * directly in a config.json file in the resources folder (usually
+ * build/resources/main/config.json).
  */
 public class BaseConfiguration {
     // Fields in the config.json file
@@ -20,6 +39,13 @@ public class BaseConfiguration {
     // TODO: add something like a getInstance() here (not sure how to do
     // that, static methods cannot be overriden in Java).
 
+    /**
+     * Load a resource from build/resources/main and return a byte[] buffer.
+     *
+     * @param filename file to load
+     * @return the whole file as a byte[] buffer
+     * @throws IOException
+     */
     public static byte[] getResource(String filename) throws IOException {
         URL url = BaseConfiguration.class.getClassLoader().getResource(filename);
         if (url == null)
@@ -45,13 +71,19 @@ public class BaseConfiguration {
         return os.toByteArray();
     }
 
+    /**
+     * Get (and possibly load) the private key that's set in private_key_path
+     * of the configuration file.
+     *
+     * @return private key
+     * @throws KeyManagementException
+     */
     public PrivateKey getPrivateKey() throws KeyManagementException {
         if (privateKey == null) {
             privateKey = loadPrivateKey(private_key_path);
         }
         return privateKey;
     }
-
 
     private PrivateKey loadPrivateKey(String filename) throws KeyManagementException {
         try {
@@ -73,6 +105,16 @@ public class BaseConfiguration {
         }
     }
 
+    /**
+     * Load a public key from a path (@filename).
+     * Should be used in a getPublicKey function that only loads the key on
+     * first use.
+     *
+     * @param filename the path to the private key (relative to
+     *                 build/resources/main).
+     * @return public key
+     * @throws KeyManagementException
+     */
     public PublicKey loadPublicKey(String filename) throws
             KeyManagementException {
         try {

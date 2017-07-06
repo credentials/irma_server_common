@@ -10,7 +10,20 @@ import java.security.NoSuchAlgorithmException;
 import javax.crypto.spec.SecretKeySpec;
 
 /**
- * Created by ayke on 22-6-17.
+ * Create and verify tokens that can be used in email verification messages.
+ *
+ * Based on this idea:
+ *   https://aykevl.nl/2015/01/south-stateless-authenticated-sessions-http-golang
+ * In short, a token has the format payload:timestamp:signature
+ * where the payload can be any email address (email addresses may not
+ * contain colons according to the HTML5 <input type=email> field so it
+ * should be fine). The timestamp is the creation timestamp. The signature is
+ * over the payload:timestamp part. This way it is relatively easy to expire
+ * tokens (set a different validity) or revoke (change the key).
+ *
+ * The tokens aren't too long, just 55 bytes + the payload. And by using the
+ * URL version of base64 the potentially problematic '/' and '+' characters
+ * are avoided so tokens can be easily put in a URL without escaping.
  */
 public class EmailTokens {
     private static Logger logger = LoggerFactory.getLogger(EmailTokens.class);
@@ -34,8 +47,10 @@ public class EmailTokens {
         }
     }
 
-    // Create a token: a value with a creation time and signature.
-    // Can be used to create e.g. authentication tokens.
+    /**
+     * Create a token: a value with a creation time and signature.
+     * Can be used to create e.g. authentication tokens.
+     */
     public String createToken(String value) {
         // We could also use a bigger radix for the timestamp to make it
         // smaller (for example, a radix of 36 uses only 6 bytes instead of 10).
@@ -44,8 +59,10 @@ public class EmailTokens {
         return value + ":" + timestamp + ":" + signToken(value + ":" + timestamp);
     }
 
-    // Sign a token (value+timestamp) with a HMAC. Output the digest of the
-    // HMAC as base64 url-encoded string.
+    /**
+     * Sign a token (value+timestamp) with a HMAC. Output the digest of the
+     * HMAC as base64 url-encoded string.
+     */
     private String signToken(String token) {
         // See https://aykevl.nl/2015/01/south-stateless-authenticated-sessions-http-golang
         // for background on the system.
@@ -59,8 +76,10 @@ public class EmailTokens {
         return digest;
     }
 
-    // Verify the token. If it is verified and not expired, return the value.
-    // Otherwise, return null.
+    /**
+     * Verify the token. If it is verified and not expired, return the value.
+     * Otherwise, return null.
+     */
     public String verifyToken(String token) {
         // Parse token
         String[] parts = token.split(":");
@@ -101,9 +120,11 @@ public class EmailTokens {
         }
     }
 
-    // Compare two byte arrays in constant time. I haven't been able to
-    // quickly find a Java API for this (which would be a much better idea
-    // than reinventing the wheel).
+    /**
+     * Compare two byte arrays in constant time. I haven't been able to
+     * quickly find a Java API for this (which would be a much better idea
+     * than reinventing the wheel).
+     */
     private static boolean isEqualsConstantTime(char[] a, char[] b) {
         // I hope this is safe...
         // https://codahale.com/a-lesson-in-timing-attacks/
