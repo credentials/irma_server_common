@@ -1,4 +1,4 @@
-package foundation.privacybydesign.api.server.filters;
+package foundation.privacybydesign.common.filters;
 
 import javax.ws.rs.NameBinding;
 import java.lang.annotation.Retention;

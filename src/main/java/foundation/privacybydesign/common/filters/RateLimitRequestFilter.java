@@ -1,4 +1,4 @@
-package foundation.privacybydesign.api.server.filters;
+package foundation.privacybydesign.common.filters;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

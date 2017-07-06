@@ -1,4 +1,4 @@
-group 'foundation.privacybydesign.api.server.email'
+group 'foundation.privacybydesign.common'
 version '0.1'
 
 apply plugin: 'java'

@@ -1,4 +1,4 @@
-package foundation.privacybydesign.api.server.email;
+package foundation.privacybydesign.common.email;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

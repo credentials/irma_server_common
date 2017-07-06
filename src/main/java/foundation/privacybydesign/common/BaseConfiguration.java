@@ -1,4 +1,4 @@
-package foundation.privacybydesign.api.server;
+package foundation.privacybydesign.common;
 
 import java.io.*;
 import java.net.URL;
