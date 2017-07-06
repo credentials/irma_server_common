@@ -56,7 +56,7 @@ public class BaseConfiguration {
         return convertSteamToByteArray(urlCon.getInputStream(), 2048);
     }
 
-    public static byte[] convertSteamToByteArray(InputStream stream, int size) throws IOException {
+    private static byte[] convertSteamToByteArray(InputStream stream, int size) throws IOException {
         byte[] buffer = new byte[size];
         ByteArrayOutputStream os = new ByteArrayOutputStream();
 
@@ -115,7 +115,7 @@ public class BaseConfiguration {
      * @return public key
      * @throws KeyManagementException
      */
-    public PublicKey loadPublicKey(String filename) throws
+    protected PublicKey loadPublicKey(String filename) throws
             KeyManagementException {
         try {
             return decodePublicKey(BaseConfiguration.getResource(filename));
