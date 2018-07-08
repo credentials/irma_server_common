@@ -1,6 +1,8 @@
 package foundation.privacybydesign.common;
 
 import com.google.gson.JsonSyntaxException;
+import org.bouncycastle.util.io.pem.PemObject;
+import org.bouncycastle.util.io.pem.PemReader;
 import org.irmacard.api.common.util.GsonUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,9 +59,12 @@ public class BaseConfiguration<T>  {
         return instance;
     }
 
+    public static FileInputStream getResourceStream(String filename) throws IOException {
+        return new FileInputStream(new File(getConfigurationDirectory().resolve(filename)));
+    }
+
     public static byte[] getResource(String filename) throws IOException {
-        File file = new File(getConfigurationDirectory().resolve(filename));
-        return convertSteamToByteArray(new FileInputStream(file), 2048);
+        return convertSteamToByteArray(getResourceStream(filename), 2048);
     }
 
     public static byte[] convertSteamToByteArray(InputStream stream, int size) throws IOException {
@@ -77,36 +82,34 @@ public class BaseConfiguration<T>  {
         return os.toByteArray();
     }
 
-    public static PrivateKey loadPrivateKey(String filename) throws KeyManagementException {
+    public static PublicKey getPublicKey(String filename) throws KeyManagementException {
         try {
-            return decodePrivateKey(getResource(filename));
+            byte[] bytes = filename.endsWith(".pem") ? readPemFile(filename) : getResource(filename);
+            return decodePublicKey(bytes);
         } catch (IOException e) {
             throw new KeyManagementException(e);
         }
     }
 
-    public static PublicKey getPublicKey(String filename) throws KeyManagementException {
-        try {
-            return decodePublicKey(getResource(filename));
-        } catch (IOException e) {
-            throw new KeyManagementException(e);
-        }
+    private static byte[] readPemFile(String filename) throws FileNotFoundException, IOException {
+        PemReader pemReader = new PemReader(new InputStreamReader(getResourceStream(filename)));
+        PemObject pemObject = pemReader.readPemObject();
+        pemReader.close();
+        return pemObject.getContent();
     }
 
     public static  PublicKey decodePublicKey(byte[] bytes) throws KeyManagementException {
         try {
             if (bytes == null || bytes.length == 0)
                 throw new KeyManagementException("Could not read public key");
-
             X509EncodedKeySpec spec = new X509EncodedKeySpec(bytes);
-
             return KeyFactory.getInstance("RSA").generatePublic(spec);
         } catch (NoSuchAlgorithmException|InvalidKeySpecException e) {
             throw new KeyManagementException(e);
         }
     }
 
-    public PrivateKey getPrivateKey(String filename) throws KeyManagementException {
+    public static PrivateKey getPrivateKey(String filename) throws KeyManagementException {
         try {
             return decodePrivateKey(getResource(filename));
         } catch (IOException e) {
