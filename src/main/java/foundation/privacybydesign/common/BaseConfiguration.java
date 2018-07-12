@@ -27,14 +27,14 @@ public class BaseConfiguration<T>  {
     public static String filename = "config.json";
     public static String environmentVarPrefix = "IRMA_CONF_";
     public static String confDirEnvironmentVarName = "IRMA_CONF";
+    public static String confDirName;
     public static boolean printOnLoad = false;
     public static boolean testing = false;
 
     // Return this from a static getInstance()
     public static BaseConfiguration instance;
-
     private static URI confPath;
-    private static String confDirName;
+
 
     public static void load() {
         try {
@@ -277,9 +277,11 @@ public class BaseConfiguration<T>  {
             // See if a number of other fixed candidates are suitable
             ArrayList<URI> candidates = new ArrayList<>(4);
             candidates.add(resourcesCandidate);
-            candidates.add(new URI("file:///etc/" + confDirName + "/"));
-            candidates.add(new URI("file:///C:/" + confDirName + "/"));
-            candidates.add(new File(System.getProperty("user.home")).toURI().resolve(confDirName + "/"));
+            if (confDirName != null) {
+                candidates.add(new URI("file:///etc/" + confDirName + "/"));
+                candidates.add(new URI("file:///C:/" + confDirName + "/"));
+                candidates.add(new File(System.getProperty("user.home")).toURI().resolve(confDirName + "/"));
+            }
 
             for (URI candidate : candidates) {
                 if (isConfDirectory(candidate)) {
