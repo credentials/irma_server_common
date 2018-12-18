@@ -1,6 +1,7 @@
 package foundation.privacybydesign.common;
 
 import com.google.gson.JsonSyntaxException;
+import org.apache.commons.lang3.SystemUtils;
 import org.bouncycastle.util.io.pem.PemObject;
 import org.bouncycastle.util.io.pem.PemReader;
 import org.irmacard.api.common.util.GsonUtil;
@@ -201,14 +202,7 @@ public class BaseConfiguration<T>  {
         String envDir = System.getenv(confDirEnvironmentVarName);
         if (envDir == null || envDir.length() == 0)
             return null;
-
-        if (!envDir.startsWith("file://"))
-            envDir = "file://" + envDir;
-        if (!envDir.endsWith("/"))
-            envDir += "/";
-        envDir = envDir.replace("\\", "/");
-
-        return new URI(envDir);
+        return pathToURI(envDir, true);
     }
 
     /**
@@ -231,9 +225,22 @@ public class BaseConfiguration<T>  {
         String testfile = BaseConfiguration.testing ? "config.test.json" : filename;
         URL url = BaseConfiguration.class.getClassLoader().getResource(testfile);
         if (url != null) // Construct an URI of the parent path
-            return new URI("file://" + new File(url.getPath()).getParent().replace("\\", "/") + "/");
+            return pathToURI(new File(url.getPath()).getParent(), true);
         else
             return null;
+    }
+
+    public static URI pathToURI(String path, boolean trailingSlash) throws URISyntaxException {
+        if (trailingSlash && !path.endsWith("/"))
+            path = path + "/";
+        if (SystemUtils.IS_OS_WINDOWS)
+            path = path.replace("\\", "/");
+        // path might contain file: or file:/ or file:// or file:/// or none of them
+        // Just throw them all away so we can fix it properly
+        path = path.replaceFirst("^file:/*", "");
+        if (SystemUtils.IS_OS_WINDOWS) // Sometimes we get file:///C/blah, that doesn't work
+            path = path.replaceFirst("^(\\w)/", "$1:/");
+        return new URI("file:///" + path);
     }
 
     /**
@@ -279,9 +286,9 @@ public class BaseConfiguration<T>  {
             ArrayList<URI> candidates = new ArrayList<>(4);
             candidates.add(resourcesCandidate);
             if (confDirName != null) {
-                candidates.add(new URI("file:///etc/" + confDirName + "/"));
-                candidates.add(new URI("file:///C:/" + confDirName.replace("\\", "/") + "/"));
-                candidates.add(new File(System.getProperty("user.home")).toURI().resolve(confDirName.replace("\\", "/") + "/"));
+                candidates.add(pathToURI("/etc/" + confDirName, true));
+                candidates.add(pathToURI("C:/" + confDirName, true));
+                candidates.add(pathToURI(System.getProperty("user.home")+"/"+confDirName, true));
             }
 
             for (URI candidate : candidates) {
