@@ -206,6 +206,7 @@ public class BaseConfiguration<T>  {
             envDir = "file://" + envDir;
         if (!envDir.endsWith("/"))
             envDir += "/";
+        envDir = envDir.replace("\\", "/");
 
         return new URI(envDir);
     }
@@ -230,7 +231,7 @@ public class BaseConfiguration<T>  {
         String testfile = BaseConfiguration.testing ? "config.test.json" : filename;
         URL url = BaseConfiguration.class.getClassLoader().getResource(testfile);
         if (url != null) // Construct an URI of the parent path
-            return new URI("file://" + new File(url.getPath()).getParent() + "/");
+            return new URI("file://" + new File(url.getPath()).getParent().replace("\\", "/") + "/");
         else
             return null;
     }
@@ -279,8 +280,8 @@ public class BaseConfiguration<T>  {
             candidates.add(resourcesCandidate);
             if (confDirName != null) {
                 candidates.add(new URI("file:///etc/" + confDirName + "/"));
-                candidates.add(new URI("file:///C:/" + confDirName + "/"));
-                candidates.add(new File(System.getProperty("user.home")).toURI().resolve(confDirName + "/"));
+                candidates.add(new URI("file:///C:/" + confDirName.replace("\\", "/") + "/"));
+                candidates.add(new File(System.getProperty("user.home")).toURI().resolve(confDirName.replace("\\", "/") + "/"));
             }
 
             for (URI candidate : candidates) {
