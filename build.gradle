@@ -1,5 +1,5 @@
 group 'foundation.privacybydesign.common'
-version '0.3.4'
+version '0.4.0'
 
 apply plugin: 'java'
 apply plugin: 'maven'
