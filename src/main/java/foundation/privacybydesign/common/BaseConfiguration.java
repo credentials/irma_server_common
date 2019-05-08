@@ -144,6 +144,7 @@ public class BaseConfiguration<T>  {
             Object envValue = getEnv(environmentVarPrefix + f.getName(), f.getType());
             if (envValue != null) {
                 try {
+                    f.setAccessible(true);
                     f.set(this, envValue);
                 } catch (IllegalAccessException e) {
                     e.printStackTrace();
